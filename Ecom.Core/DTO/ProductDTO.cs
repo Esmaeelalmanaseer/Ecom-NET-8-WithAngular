@@ -1,6 +1,4 @@
-﻿using Ecom.Core.Entities.Product;
-using Microsoft.AspNetCore.Http;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace Ecom.Core.DTO;
 
