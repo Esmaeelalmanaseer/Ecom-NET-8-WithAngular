@@ -54,4 +54,19 @@ public class ProductController : BaseController
             return BadRequest(ex.Message);
         }
     }
+    [HttpPut("update-product")]
+    public async Task<IActionResult>update(UpdateProductDTO UpdateProduct)
+    {
+        try
+        {
+            var result=await _unitOfWork.ProductRepositry.UpdateAsync(UpdateProduct);
+            if (result) return Ok(new ResponseAPI(200,"Product Has Been Updated"));
+            return BadRequest(new ResponseAPI(400));
+                
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

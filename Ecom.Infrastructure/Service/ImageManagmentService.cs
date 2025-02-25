@@ -27,7 +27,7 @@ public class ImageManagmentService : IImageManagmentService
         {
             if (item.Length > 0)
             {
-                var ImageName = item.Name;
+                var ImageName = item.FileName;
                 var ImageSrc = $"/Image/{src}/{ImageName}";
                 var root = Path.Combine(ImageDirctory, ImageName);
                 using (FileStream strem = new FileStream(root, FileMode.Create))

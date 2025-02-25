@@ -26,4 +26,8 @@ public record AddProductDTO
     public int CategoryId { get; set; }
     public IFormFileCollection Photo { get; set; }
 }
+public record UpdateProductDTO: AddProductDTO
+{
+    public int Id { get; set; }
+}
 
