@@ -69,4 +69,18 @@ public class ProductController : BaseController
             return BadRequest(ex.Message);
         }
     }
+    [HttpDelete("Delete-Product/{id}")]
+    public async Task<IActionResult>delete(int id)
+    {
+        try
+        {
+            var product = await _unitOfWork.ProductRepositry.GetByIdAsync(id, x => x.Category, x => x.Photos);
+            await _unitOfWork.ProductRepositry.DeleteAsync(product);
+            return Ok(new ResponseAPI(200));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

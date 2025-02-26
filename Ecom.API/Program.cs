@@ -23,7 +23,7 @@ namespace Ecom.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHttpsRedirection();
 
             app.UseAuthorization();

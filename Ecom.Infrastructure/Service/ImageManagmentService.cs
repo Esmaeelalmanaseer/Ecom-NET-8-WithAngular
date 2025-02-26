@@ -28,7 +28,7 @@ public class ImageManagmentService : IImageManagmentService
             if (item.Length > 0)
             {
                 var ImageName = item.FileName;
-                var ImageSrc = $"/Image/{src}/{ImageName}";
+                var ImageSrc = $"/Images/{src}/{ImageName}";
                 var root = Path.Combine(ImageDirctory, ImageName);
                 using (FileStream strem = new FileStream(root, FileMode.Create))
                 {
@@ -43,10 +43,22 @@ public class ImageManagmentService : IImageManagmentService
     public async Task DeleteImageAsync(string src)
     {
         var info= _fileProvider.GetFileInfo(src);
+
         if (info != null)
         {
             var root=info.PhysicalPath;
-            File.Delete(root!);
+            try
+            {
+                if (File.Exists(root))
+                {
+                    File.Delete(root);
+                }
+            }
+            catch (IOException ex)
+            {
+                // تعامل مع الاستثناء (مثل تسجيله أو إعادة المحاولة)
+                Console.WriteLine($"Error deleting file: {ex.Message}");
+            }
         }
        await Task.CompletedTask;
     }

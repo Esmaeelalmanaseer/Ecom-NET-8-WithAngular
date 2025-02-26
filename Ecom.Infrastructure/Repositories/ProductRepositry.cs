@@ -37,6 +37,20 @@ public class ProductRepositry : GenericRepositry<Product>, IProductRepositry
         return true;
     }
 
+    public async Task DeleteAsync(Product productObj)
+    {
+        var photo = await _dbcontext.Photos.Where(p => p.ProductId == productObj.Id).ToListAsync();
+        if (photo.Any())
+        {
+            foreach(var item in photo)
+            {
+                await _imageManagmentService.DeleteImageAsync(item.ImageName);
+            }
+        }
+        _dbcontext.Products.Remove(productObj);
+        await _dbcontext.SaveChangesAsync();
+    }
+
     public async Task<bool> UpdateAsync(UpdateProductDTO updateProduct)
     {
         if (updateProduct is null) return false;
@@ -49,19 +63,19 @@ public class ProductRepositry : GenericRepositry<Product>, IProductRepositry
 
         var photo = await _dbcontext.Photos.Where(m => m.ProductId == updateProduct.Id).ToListAsync();
 
-        if(photo.Any())
+        if (photo.Any())
         {
-            foreach(var item in photo)
+            foreach (var item in photo)
             {
-              await _imageManagmentService.DeleteImageAsync(item.ImageName);
+                await _imageManagmentService.DeleteImageAsync(item.ImageName);
             }
             _dbcontext.Photos.RemoveRange(photo);
 
             var ImagePath = await _imageManagmentService.AddImageAsync(updateProduct.Photo, updateProduct.Name);
             var photosave = ImagePath.Select(x => new Photo
             {
-                ImageName=x,
-                ProductId=updateProduct.Id
+                ImageName = x,
+                ProductId = updateProduct.Id
             }).ToList();
 
             await _dbcontext.Photos.AddRangeAsync(photosave);
