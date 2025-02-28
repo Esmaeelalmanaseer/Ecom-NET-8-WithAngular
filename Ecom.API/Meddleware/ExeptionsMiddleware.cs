@@ -10,7 +10,7 @@ public class ExeptionsMiddleware
     private readonly RequestDelegate _next;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IMemoryCache _memoryCache;
-    private readonly TimeSpan _rateLimitWindow=TimeSpan.FromSeconds(30);
+    private readonly TimeSpan _rateLimitWindow = TimeSpan.FromSeconds(30);
     public ExeptionsMiddleware(RequestDelegate next, IHostEnvironment hostEnvironment, IMemoryCache memoryCache)
     {
         _next = next;
@@ -21,7 +21,8 @@ public class ExeptionsMiddleware
     {
         try
         {
-            if(!IsRequestAllowed(context))
+            ApplySecurity(context);
+            if (!IsRequestAllowed(context))
             {
                 context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
                 context.Response.ContentType = "application/json";
@@ -45,25 +46,32 @@ public class ExeptionsMiddleware
     {
         var IP = httpContext.Connection.RemoteIpAddress!.ToString();
         var cachKey = $"Rate{IP}";
-        var DateNow=DateTime.Now;
+        var DateNow = DateTime.Now;
 
         var (timesTamp, count) = _memoryCache.GetOrCreate(cachKey, entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = _rateLimitWindow;
-            return (DateNow, 0);
+            return (timesTamp: DateNow, count: 0);
         });
-        if(timesTamp - DateNow <_rateLimitWindow)
+        if (timesTamp - DateNow < _rateLimitWindow)
         {
-            if(count >=8)
+            if (count >= 8)
             {
                 return false;
             }
-            _memoryCache.Set(cachKey, (timesTamp, count++),_rateLimitWindow);
+            _memoryCache.Set(cachKey, (timesTamp, count += 1), _rateLimitWindow);
         }
         else
         {
             _memoryCache.Set(cachKey, (timesTamp, count), _rateLimitWindow);
         }
         return true;
+    }
+
+    private void ApplySecurity(HttpContext httpContext)
+    {
+        httpContext.Response.Headers["x-Content-Type-Option"] = "nosniff";
+        httpContext.Response.Headers["X-XSS-Protection"] = "1;mode=block";
+        httpContext.Response.Headers["X-Frame-Options"] = "DENY";
     }
 }
