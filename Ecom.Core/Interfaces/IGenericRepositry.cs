@@ -11,4 +11,5 @@ public interface IGenericRepositry<T> where T : class
     Task<T> GetByIdAsync(int id, params Expression<Func<T, object>>[] includes);
     Task UpdateAsync(T entity);
     Task DeleteAsync(int id);
+    Task<int>CountAsync();
 }

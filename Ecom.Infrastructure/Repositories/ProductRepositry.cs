@@ -3,6 +3,7 @@ using Ecom.Core.DTO;
 using Ecom.Core.Entities.Product;
 using Ecom.Core.Interfaces;
 using Ecom.Core.Services;
+using Ecom.Core.Sharing;
 using Ecom.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,12 +38,46 @@ public class ProductRepositry : GenericRepositry<Product>, IProductRepositry
         return true;
     }
 
+    public async Task<IEnumerable<ProductDTO>> GetAllAsync(ProductParams ProductParams)
+    {
+        var query = _dbcontext.Products
+            .Include(x => x.Category).Include(x => x.Photos).AsNoTracking();
+
+        //filter by word
+        if (!string.IsNullOrEmpty(ProductParams.Search))
+        {
+            var searchworld = ProductParams.Search.Split(' ');
+            query = query.Where(m => searchworld.All(world =>
+            m.Name.ToLower().Contains(world.ToLower()) ||
+             m.Description.ToLower().Contains(world.ToLower())
+            ));
+        }
+
+        if (ProductParams.CategoryId.HasValue)
+            query = query.Where(c => c.CategoryId == ProductParams.CategoryId);
+
+
+        if (!string.IsNullOrEmpty(ProductParams.sort))
+        {
+            query = ProductParams.sort switch
+            {
+                "PriceAsc" => query.OrderBy(x => x.NewPrice),
+                "PriceDes" => query.OrderByDescending(x => x.NewPrice),
+                _ => query.OrderBy(x => x.Name)
+            };
+        }
+
+        query = query.Skip((ProductParams.pageSize * ProductParams.PageNumber - 1)).Take(ProductParams.pageSize);
+
+        return _mapper.Map<List<ProductDTO>>(query);
+    }
+
     public async Task DeleteAsync(Product productObj)
     {
         var photo = await _dbcontext.Photos.Where(p => p.ProductId == productObj.Id).ToListAsync();
         if (photo.Any())
         {
-            foreach(var item in photo)
+            foreach (var item in photo)
             {
                 await _imageManagmentService.DeleteImageAsync(item.ImageName);
             }

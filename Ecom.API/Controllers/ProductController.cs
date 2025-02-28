@@ -2,6 +2,7 @@
 using Ecom.API.Helper;
 using Ecom.Core.DTO;
 using Ecom.Core.Interfaces;
+using Ecom.Core.Sharing;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ecom.API.Controllers;
@@ -12,13 +13,13 @@ public class ProductController : BaseController
     {
     }
     [HttpGet("get-all")]
-    public async Task<IActionResult> get()
+    public async Task<IActionResult> get([FromQuery]ProductParams ProductParams)
     {
         try
         {
-            var products = await _unitOfWork.ProductRepositry.GetAllAsync(x => x.Category, x => x.Photos);
+            var products = await _unitOfWork.ProductRepositry.GetAllAsync(ProductParams);
             if (products is null) return BadRequest(new ResponseAPI(400));
-            return Ok(_mapper.Map<List<ProductDTO>>(products));
+            return Ok(new Pagination<ProductDTO>(ProductParams.PageNumber, ProductParams.pageSize, products.Count(), products));
         }
         catch (Exception ex)
         {
@@ -55,14 +56,14 @@ public class ProductController : BaseController
         }
     }
     [HttpPut("update-product")]
-    public async Task<IActionResult>update(UpdateProductDTO UpdateProduct)
+    public async Task<IActionResult> update(UpdateProductDTO UpdateProduct)
     {
         try
         {
-            var result=await _unitOfWork.ProductRepositry.UpdateAsync(UpdateProduct);
-            if (result) return Ok(new ResponseAPI(200,"Product Has Been Updated"));
+            var result = await _unitOfWork.ProductRepositry.UpdateAsync(UpdateProduct);
+            if (result) return Ok(new ResponseAPI(200, "Product Has Been Updated"));
             return BadRequest(new ResponseAPI(400));
-                
+
         }
         catch (Exception ex)
         {
@@ -70,7 +71,7 @@ public class ProductController : BaseController
         }
     }
     [HttpDelete("Delete-Product/{id}")]
-    public async Task<IActionResult>delete(int id)
+    public async Task<IActionResult> delete(int id)
     {
         try
         {

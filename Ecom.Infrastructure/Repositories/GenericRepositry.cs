@@ -20,6 +20,8 @@ public class GenericRepositry<T> : IGenericRepositry<T> where T : class
         await _Dbcontext.SaveChangesAsync();
     }
 
+    public Task<int> CountAsync()=>_Dbcontext.Set<T>().CountAsync();
+
     public async Task DeleteAsync(int id)
     {
         var entity = await _Dbcontext.Set<T>().FindAsync(id);
