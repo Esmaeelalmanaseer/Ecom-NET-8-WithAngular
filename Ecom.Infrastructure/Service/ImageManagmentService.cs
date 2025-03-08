@@ -18,6 +18,8 @@ public class ImageManagmentService : IImageManagmentService
     {
         var SaveImageSrc = new List<string>();
         var ImageDirctory = Path.Combine("wwwroot", "Images", src);
+
+        // إنشاء المجلد إذا لم يكن موجودًا
         if (!Directory.Exists(ImageDirctory))
         {
             Directory.CreateDirectory(ImageDirctory);
@@ -30,10 +32,13 @@ public class ImageManagmentService : IImageManagmentService
                 var ImageName = item.FileName;
                 var ImageSrc = $"/Images/{src}/{ImageName}";
                 var root = Path.Combine(ImageDirctory, ImageName);
-                using (FileStream strem = new FileStream(root, FileMode.Create))
+
+                // استخدام using لفتح FileStream للكتابة
+                using (var stream = new FileStream(root, FileMode.Create))
                 {
-                    await strem.CopyToAsync(strem);
+                    await item.CopyToAsync(stream); // نسخ الملف من IFormFile إلى FileStream
                 }
+
                 SaveImageSrc.Add(ImageSrc);
             }
         }

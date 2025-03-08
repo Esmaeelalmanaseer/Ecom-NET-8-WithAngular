@@ -67,8 +67,7 @@ public class ProductRepositry : GenericRepositry<Product>, IProductRepositry
             };
         }
 
-        query = query.Skip((ProductParams.pageSize * ProductParams.PageNumber - 1)).Take(ProductParams.pageSize);
-
+        query = query.Skip((ProductParams.PageNumber - 1) * ProductParams.pageSize).Take(ProductParams.pageSize);
         return _mapper.Map<List<ProductDTO>>(query);
     }
 

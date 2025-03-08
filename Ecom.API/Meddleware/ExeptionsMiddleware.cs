@@ -11,67 +11,91 @@ public class ExeptionsMiddleware
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IMemoryCache _memoryCache;
     private readonly TimeSpan _rateLimitWindow = TimeSpan.FromSeconds(30);
+
     public ExeptionsMiddleware(RequestDelegate next, IHostEnvironment hostEnvironment, IMemoryCache memoryCache)
     {
         _next = next;
         _hostEnvironment = hostEnvironment;
         _memoryCache = memoryCache;
     }
+
     public async Task InvokeAsync(HttpContext context)
     {
-        try
+        // تطبيق رؤوس الأمان على جميع الاستجابات
+        ApplySecurity(context);
+
+        // التحقق من الحد من المعدل
+        if (!IsRequestAllowed(context))
         {
-            ApplySecurity(context);
-            if (!IsRequestAllowed(context))
+            if (!context.Response.HasStarted)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
                 context.Response.ContentType = "application/json";
-                var Response = new ApiExeptions((int)HttpStatusCode.TooManyRequests, "To Many Requeset . please try again Later");
-                await context.Response.WriteAsJsonAsync(Response);
+                var response = new ApiExeptions((int)HttpStatusCode.TooManyRequests, "oo many requests. Please try again later.");
+                await context.Response.WriteAsJsonAsync(response);
             }
+            return; // إيقاف المعالجة الإضافية
+        }
+
+        try
+        {
             await _next(context);
         }
         catch (Exception ex)
         {
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            context.Response.ContentType = "application/json";
-            var Response = _hostEnvironment.IsDevelopment() ?
-                new ApiExeptions((int)HttpStatusCode.InternalServerError, ex.Message, ex.StackTrace!) :
-                new ApiExeptions((int)HttpStatusCode.InternalServerError, ex.Message);
-            var json = JsonSerializer.Serialize(Response);
-            await context.Response.WriteAsJsonAsync(json);
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ContentType = "application/json";
+                var response = _hostEnvironment.IsDevelopment()
+                    ? new ApiExeptions((int)HttpStatusCode.InternalServerError, ex.Message, ex.StackTrace!)
+                    : new ApiExeptions((int)HttpStatusCode.InternalServerError, "An internal server error occurred.");
+                await context.Response.WriteAsJsonAsync(response);
+            }
         }
     }
+
     private bool IsRequestAllowed(HttpContext httpContext)
     {
-        var IP = httpContext.Connection.RemoteIpAddress!.ToString();
-        var cachKey = $"Rate{IP}";
-        var DateNow = DateTime.Now;
+        var ip = httpContext.Connection.RemoteIpAddress!.ToString();
+        var cacheKey = $"RateLimit_{ip}";
+        var now = DateTime.Now;
 
-        var (timesTamp, count) = _memoryCache.GetOrCreate(cachKey, entry =>
+        if (!_memoryCache.TryGetValue(cacheKey, out (DateTime timestamp, int count) cacheEntry))
         {
-            entry.AbsoluteExpirationRelativeToNow = _rateLimitWindow;
-            return (timesTamp: DateNow, count: 0);
-        });
-        if (timesTamp - DateNow < _rateLimitWindow)
+            // أول طلب من هذا الـ IP
+            cacheEntry = (now, 1);
+            _memoryCache.Set(cacheKey, cacheEntry, _rateLimitWindow);
+            return true;
+        }
+
+        if (now - cacheEntry.timestamp < _rateLimitWindow)
         {
-            if (count >= 8)
+            // ضمن النافذة الزمنية
+            if (cacheEntry.count >= 8)
             {
+                // تم تجاوز الحد المسموح
                 return false;
             }
-            _memoryCache.Set(cachKey, (timesTamp, count += 1), _rateLimitWindow);
+
+            // زيادة العدد
+            cacheEntry.count++;
+            _memoryCache.Set(cacheKey, cacheEntry, _rateLimitWindow);
+            return true;
         }
         else
         {
-            _memoryCache.Set(cachKey, (timesTamp, count), _rateLimitWindow);
+            // انتهت النافذة الزمنية، إعادة تعيين العدد
+            cacheEntry = (now, 1);
+            _memoryCache.Set(cacheKey, cacheEntry, _rateLimitWindow);
+            return true;
         }
-        return true;
     }
 
     private void ApplySecurity(HttpContext httpContext)
     {
-        httpContext.Response.Headers["x-Content-Type-Option"] = "nosniff";
-        httpContext.Response.Headers["X-XSS-Protection"] = "1;mode=block";
+        httpContext.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        httpContext.Response.Headers["X-XSS-Protection"] = "1; mode=block";
         httpContext.Response.Headers["X-Frame-Options"] = "DENY";
     }
 }

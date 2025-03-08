@@ -1,4 +1,4 @@
-using Ecom.API.Meddleware;
+﻿using Ecom.API.Meddleware;
 using Ecom.Infrastructure;
 namespace Ecom.API
 {
@@ -7,7 +7,13 @@ namespace Ecom.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            builder.Services.AddCors(op =>
+            {
+                op.AddPolicy("CORSPolicy",builder =>
+                {
+                    builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+                });
+            });
             // Add services to the container.
             builder.Services.AddMemoryCache();
             builder.Services.AddControllers();
@@ -24,13 +30,12 @@ namespace Ecom.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            app.UseMiddleware<ExeptionsMiddleware>();
+            app.UseMiddleware<ExeptionsMiddleware>(); // في البداية
+            app.UseCors("CORSPolicy");
             app.UseStatusCodePagesWithReExecute("/error/{0}");
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
+            app.UseStaticFiles();
             app.MapControllers();
 
             app.Run();
