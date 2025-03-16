@@ -19,7 +19,7 @@ public class ProductController : BaseController
        {
             var products = await _unitOfWork.ProductRepositry.GetAllAsync(ProductParams);
             if (products is null) return BadRequest(new ResponseAPI(400));
-            return Ok(new Pagination<ProductDTO>(ProductParams.PageNumber, ProductParams.pageSize, products.Count(), products));
+            return Ok(new Pagination<ProductDTO>(ProductParams.PageNumber, ProductParams.pageSize, products.TotalCount, products.LstProduct));
         }
         catch (Exception ex)
         {

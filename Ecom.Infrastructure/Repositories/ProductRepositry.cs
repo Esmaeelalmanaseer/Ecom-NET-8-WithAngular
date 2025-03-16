@@ -38,8 +38,9 @@ public class ProductRepositry : GenericRepositry<Product>, IProductRepositry
         return true;
     }
 
-    public async Task<IEnumerable<ProductDTO>> GetAllAsync(ProductParams ProductParams)
+    public async Task<ReturnProductDTO> GetAllAsync(ProductParams ProductParams)
     {
+        ReturnProductDTO returnProductDTO = new();
         var query = _dbcontext.Products
             .Include(x => x.Category).Include(x => x.Photos).AsNoTracking();
 
@@ -66,9 +67,10 @@ public class ProductRepositry : GenericRepositry<Product>, IProductRepositry
                 _ => query.OrderBy(x => x.Name)
             };
         }
-
+        returnProductDTO.TotalCount= query.Count();
         query = query.Skip((ProductParams.PageNumber - 1) * ProductParams.pageSize).Take(ProductParams.pageSize);
-        return _mapper.Map<List<ProductDTO>>(query);
+        returnProductDTO.LstProduct = _mapper.Map<List<ProductDTO>>(query);
+        return returnProductDTO;
     }
 
     public async Task DeleteAsync(Product productObj)
@@ -104,7 +106,9 @@ public class ProductRepositry : GenericRepositry<Product>, IProductRepositry
                 await _imageManagmentService.DeleteImageAsync(item.ImageName);
             }
             _dbcontext.Photos.RemoveRange(photo);
-
+        }
+        if (updateProduct.Photo.Any())
+        {
             var ImagePath = await _imageManagmentService.AddImageAsync(updateProduct.Photo, updateProduct.Name);
             var photosave = ImagePath.Select(x => new Photo
             {

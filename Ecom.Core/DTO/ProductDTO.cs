@@ -4,6 +4,7 @@ namespace Ecom.Core.DTO;
 
 public record ProductDTO
 {
+    public int Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public decimal OldPrice { get; set; }
@@ -30,5 +31,12 @@ public record AddProductDTO
 public record UpdateProductDTO: AddProductDTO
 {
     public int Id { get; set; }
+}
+
+public record ReturnProductDTO
+{
+    public List<ProductDTO> LstProduct { get; set; }
+
+    public int TotalCount { get; set; }
 }
 

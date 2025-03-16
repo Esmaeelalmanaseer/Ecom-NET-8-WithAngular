@@ -17,7 +17,7 @@ public class ImageManagmentService : IImageManagmentService
     public async Task<List<string>> AddImageAsync(IFormFileCollection file, string src)
     {
         var SaveImageSrc = new List<string>();
-        var ImageDirctory = Path.Combine("wwwroot", "Images", src);
+        var ImageDirctory = Path.Combine("wwwroot", "Images", src.Trim());
 
         // إنشاء المجلد إذا لم يكن موجودًا
         if (!Directory.Exists(ImageDirctory))
@@ -30,7 +30,7 @@ public class ImageManagmentService : IImageManagmentService
             if (item.Length > 0)
             {
                 var ImageName = item.FileName;
-                var ImageSrc = $"/Images/{src}/{ImageName}";
+                var ImageSrc = $"/Images/{src.Trim()}/{ImageName}";
                 var root = Path.Combine(ImageDirctory, ImageName);
 
                 // استخدام using لفتح FileStream للكتابة
