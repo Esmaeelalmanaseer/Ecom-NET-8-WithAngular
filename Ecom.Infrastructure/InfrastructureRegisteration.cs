@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using StackExchange.Redis;
 
 namespace Ecom.Infrastructure;
 
@@ -21,6 +22,13 @@ public static class InfrastructureRegisteration
         services.AddDbContext<AppDbContext>(options =>
         {
             options.UseSqlServer(configuration.GetConnectionString("Ecom"));
+        });
+
+        //Apply redies connected
+        services.AddSingleton<IConnectionMultiplexer>(i =>
+        {
+            var config = ConfigurationOptions.Parse(configuration.GetConnectionString("redis")!);
+            return ConnectionMultiplexer.Connect(config);
         });
         return services;
     }
