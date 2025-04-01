@@ -11,7 +11,7 @@ namespace Ecom.Infrastructure.Repositories
         private readonly AppDbContext _appDbContext;
         private readonly IMapper _mapper;
         private readonly IImageManagmentService _imageManagmentService;
-        private readonly IConnectionMultiplexer redis;
+        private readonly IConnectionMultiplexer _redis;
         public IProductRepositry ProductRepositry { get; }
 
         public ICategoryRepositry CategoryRepositry { get; }
@@ -20,16 +20,16 @@ namespace Ecom.Infrastructure.Repositories
 
         public ICustomerBasketRepositry CustomerBasket { get; }
 
-        public UnitOfWork(AppDbContext appDbContext, IMapper mapper, IImageManagmentService imageManagmentService)
+        public UnitOfWork(AppDbContext appDbContext, IMapper mapper, IImageManagmentService imageManagmentService, IConnectionMultiplexer redis)
         {
             _appDbContext = appDbContext;
             _mapper = mapper;
             _imageManagmentService = imageManagmentService;
-
+            _redis=redis;  
             ProductRepositry = new ProductRepositry(_appDbContext,_mapper,_imageManagmentService);
             CategoryRepositry = new CategoryRepositry(_appDbContext);
             PhotoRepositry = new PhotoRepositry(_appDbContext);
-            CustomerBasket = new CustomerBasketRepositry(redis!);
+            CustomerBasket = new CustomerBasketRepositry(_redis!);
         }
     }
 }
