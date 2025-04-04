@@ -2,13 +2,12 @@
 using Ecom.Core.Entities.Product;
 using Ecom.Core.Sharing;
 
-namespace Ecom.Core.Interfaces
+namespace Ecom.Core.Interfaces;
+
+public interface IProductRepositry:IGenericRepositry<Product>
 {
-    public interface IProductRepositry:IGenericRepositry<Product>
-    {
-        Task<ReturnProductDTO> GetAllAsync(ProductParams ProductParams);
-        Task<bool> AddAsync(AddProductDTO addProductDTO);
-        Task<bool> UpdateAsync(UpdateProductDTO updateProduct);
-        Task DeleteAsync(Product productObj);
-    }
+    Task<ReturnProductDTO> GetAllAsync(ProductParams ProductParams);
+    Task<bool> AddAsync(AddProductDTO addProductDTO);
+    Task<bool> UpdateAsync(UpdateProductDTO updateProduct);
+    Task DeleteAsync(Product productObj);
 }

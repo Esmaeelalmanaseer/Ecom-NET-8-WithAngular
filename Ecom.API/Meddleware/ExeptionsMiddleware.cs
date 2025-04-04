@@ -1,7 +1,6 @@
 ﻿using Ecom.API.Helper;
 using Microsoft.Extensions.Caching.Memory;
 using System.Net;
-using System.Text.Json;
 
 namespace Ecom.API.Meddleware;
 
@@ -31,7 +30,7 @@ public class ExeptionsMiddleware
             {
                 context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
                 context.Response.ContentType = "application/json";
-                var response = new ApiExeptions((int)HttpStatusCode.TooManyRequests, "oo many requests. Please try again later.");
+                var response = new ApiExeptions((int)HttpStatusCode.TooManyRequests, "To many requests. Please try again later.");
                 await context.Response.WriteAsJsonAsync(response);
             }
             return; // إيقاف المعالجة الإضافية
