@@ -30,6 +30,8 @@ public static class InfrastructureRegisteration
             var config = ConfigurationOptions.Parse(configuration.GetConnectionString("redis")!);
             return ConnectionMultiplexer.Connect(config);
         });
+        //messageService
+        services.AddScoped<IEmailService, EmailService>();
         return services;
     }
 }
