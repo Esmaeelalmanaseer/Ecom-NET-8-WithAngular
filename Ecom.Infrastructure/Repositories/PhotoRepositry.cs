@@ -2,12 +2,11 @@
 using Ecom.Core.Interfaces;
 using Ecom.Infrastructure.Data;
 
-namespace Ecom.Infrastructure.Repositories
+namespace Ecom.Infrastructure.Repositories;
+
+public class PhotoRepositry : GenericRepositry<Photo>, IPhotoRepositry
 {
-    public class PhotoRepositry : GenericRepositry<Photo>, IPhotoRepositry
+    public PhotoRepositry(AppDbContext dbcontext) : base(dbcontext)
     {
-        public PhotoRepositry(AppDbContext dbcontext) : base(dbcontext)
-        {
-        }
     }
 }

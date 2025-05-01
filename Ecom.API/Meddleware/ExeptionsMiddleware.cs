@@ -20,10 +20,8 @@ public class ExeptionsMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // تطبيق رؤوس الأمان على جميع الاستجابات
         ApplySecurity(context);
 
-        // التحقق من الحد من المعدل
         if (!IsRequestAllowed(context))
         {
             if (!context.Response.HasStarted)
@@ -33,7 +31,7 @@ public class ExeptionsMiddleware
                 var response = new ApiExeptions((int)HttpStatusCode.TooManyRequests, "To many requests. Please try again later.");
                 await context.Response.WriteAsJsonAsync(response);
             }
-            return; // إيقاف المعالجة الإضافية
+            return; 
         }
 
         try
@@ -62,7 +60,6 @@ public class ExeptionsMiddleware
 
         if (!_memoryCache.TryGetValue(cacheKey, out (DateTime timestamp, int count) cacheEntry))
         {
-            // أول طلب من هذا الـ IP
             cacheEntry = (now, 1);
             _memoryCache.Set(cacheKey, cacheEntry, _rateLimitWindow);
             return true;
@@ -70,21 +67,17 @@ public class ExeptionsMiddleware
 
         if (now - cacheEntry.timestamp < _rateLimitWindow)
         {
-            // ضمن النافذة الزمنية
             if (cacheEntry.count >= 8)
             {
-                // تم تجاوز الحد المسموح
                 return false;
             }
 
-            // زيادة العدد
             cacheEntry.count++;
             _memoryCache.Set(cacheKey, cacheEntry, _rateLimitWindow);
             return true;
         }
         else
         {
-            // انتهت النافذة الزمنية، إعادة تعيين العدد
             cacheEntry = (now, 1);
             _memoryCache.Set(cacheKey, cacheEntry, _rateLimitWindow);
             return true;

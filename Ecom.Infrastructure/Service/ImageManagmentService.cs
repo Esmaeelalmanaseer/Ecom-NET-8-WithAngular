@@ -19,7 +19,6 @@ public class ImageManagmentService : IImageManagmentService
         var SaveImageSrc = new List<string>();
         var ImageDirctory = Path.Combine("wwwroot", "Images", src.Trim());
 
-        // إنشاء المجلد إذا لم يكن موجودًا
         if (!Directory.Exists(ImageDirctory))
         {
             Directory.CreateDirectory(ImageDirctory);
@@ -33,10 +32,9 @@ public class ImageManagmentService : IImageManagmentService
                 var ImageSrc = $"/Images/{src.Trim()}/{ImageName}";
                 var root = Path.Combine(ImageDirctory, ImageName);
 
-                // استخدام using لفتح FileStream للكتابة
                 using (var stream = new FileStream(root, FileMode.Create))
                 {
-                    await item.CopyToAsync(stream); // نسخ الملف من IFormFile إلى FileStream
+                    await item.CopyToAsync(stream); 
                 }
 
                 SaveImageSrc.Add(ImageSrc);
@@ -61,7 +59,6 @@ public class ImageManagmentService : IImageManagmentService
             }
             catch (IOException ex)
             {
-                // تعامل مع الاستثناء (مثل تسجيله أو إعادة المحاولة)
                 Console.WriteLine($"Error deleting file: {ex.Message}");
             }
         }

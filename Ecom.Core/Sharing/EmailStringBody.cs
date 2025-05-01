@@ -29,7 +29,7 @@ public class EmailStringBody
                                    {message}
                                 </a>
                     </body>
-              <\html>
+              </html>
 ";
     }
 }

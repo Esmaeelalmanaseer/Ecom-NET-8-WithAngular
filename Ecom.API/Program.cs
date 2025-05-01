@@ -37,6 +37,7 @@ public class Program
         app.UseStatusCodePagesWithReExecute("/error/{0}");
         app.UseHttpsRedirection();
         app.UseCors("CORSPolicy");
+        app.UseAuthentication();
         app.UseAuthorization();
         app.UseStaticFiles();
         app.MapControllers();
